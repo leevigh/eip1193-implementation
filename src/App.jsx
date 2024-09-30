@@ -1,17 +1,19 @@
-import { useState } from 'react'
+import { useContext, useState } from 'react'
 import './App.css'
 import useWalletConnect from './hooks/useWalletConnect';
+import { AppContext } from './context/AppContext';
 
 function App() {
-  
   const [address, setAddress] = useState("");
   const [otherBalance, setOtherBalance] = useState(null);
-
+  
   const { 
     account, 
     connectedBalance, 
     chainId, 
-    error, 
+    error } = useContext(AppContext);
+    
+  const { 
     connectWallet, 
     disconnectWallet, 
     getBalance,

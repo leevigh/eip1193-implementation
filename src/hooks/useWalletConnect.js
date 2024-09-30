@@ -1,12 +1,21 @@
 import { ethers } from 'ethers';
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
+import { AppContext } from '../context/AppContext';
 
 const useWalletConnect = () => {
 
-    const [account, setAccount] = useState(null);
-    const [chainId, setChainId] = useState(null);
-    const [connectedBalance, setConnectedBalance] = useState(null);
-    const [error, setError] = useState(null);
+    const {
+      account,
+      connectedBalance,
+      setError,
+      setConnectedBalance,
+      setChainId,
+      setAccount
+    } = useContext(AppContext)
+    // const [account, setAccount] = useState(null);
+    // const [chainId, setChainId] = useState(null);
+    // const [connectedBalance, setConnectedBalance] = useState(null);
+    // const [error, setError] = useState(null);
 
     const ethereum = window.ethereum;
 
@@ -60,18 +69,18 @@ const useWalletConnect = () => {
             params: [account, "latest"],
           });
 
-          console.log("Balance", balance)
+          console.log("Balance:::", balance)
     
           const balanceInWei = ethers.toBigInt(balance);
           const balanceInEth = ethers.formatEther(balanceInWei)
-    
-          console.log("Balance in ETH:", balanceInEth);
+          console.log("Balance in Wei", balanceInWei)
+          console.log("Balance in ETH:::", balanceInEth);
         // console.log("Balance in ETH:", connectedBalance);
     
             setConnectedBalance(balanceInEth);
             return balanceInEth;
         } catch (error) {
-          console.error("Error",error);
+          console.error("Error>>>",error);
         }
     };
 
@@ -86,18 +95,24 @@ const useWalletConnect = () => {
     useEffect(() => {
         if (ethereum) {
     
-          const handleAccountsChanged = (accounts) => {
-            if (accounts.length > 0) {
-              setAccount(accounts[0]);
-              getBalance(account[0]);
-            } else {
+          const handleAccountsChanged = async (accounts) => {
+            if(!accounts) {
               setAccount(null);
+              return;
             }
+            setAccount(accounts[0]);
+            await getBalance(accounts[0]);
+            // if (accounts.length > 0) {
+            //   setAccount(accounts[0]);
+            //   await getBalance(account[0]);
+            // } else {
+            //   setAccount(null);
+            // }
           };
     
-          const handleChainChanged = (chainId) => {
+          const handleChainChanged = async (chainId) => {
             setChainId(chainId);
-            getBalance(account)
+            await getBalance(account)
           };
     
           ethereum.on('accountsChanged', handleAccountsChanged);
@@ -111,10 +126,6 @@ const useWalletConnect = () => {
       }, [ethereum]);
 
     return { 
-        account, 
-        connectedBalance,
-        chainId, 
-        error, 
         connectWallet, 
         disconnectWallet,
         getBalance,
